@@ -105,7 +105,7 @@ find . -type f -size -100c
 
 </TerminalBlock>
 
-Como vimos en el lab anterior, `-type f` se queda solo con archivos. Con `-size` buscamos por tamaño, el `+` significa "mayor que" y el `-` "menor que". Las unidades son `c` (bytes), `k` (kilobytes), `M` (megabytes) y `G` (gigabytes).
+Como vimos en el lab anterior, `-type f` se queda solo con archivos. Con `-size` buscamos por tamaño, el `+` significa "mayor que" y el `-` "menor que". Las unidades son `c` (bytes), `k` (1024 bytes), `M` (1024 k) y `G` (1024 M).
 
 - `-size +1M` devuelve `./viejo/grande.bin`, que pesa 2 MB.
 - `-size -1k` devuelve **solo** `./notas/vacio.txt`.
@@ -132,10 +132,18 @@ find . -type f -mtime -1
 
 </TerminalBlock>
 
-`-mtime` cuenta en días: `+7` es "hace más de 7 días" y `-1` es "hace menos de 1 día".
+`-mtime` cuenta en días completos: `+7` es "hace más de 7 días" y `-1` es "hace menos de 1 día".
 
 - `-mtime +7` devuelve `./viejo/grande.bin` y `./viejo/respaldo.txt`, los que pusimos con fecha de hace 30 días.
 - `-mtime -1` devuelve los archivos de `logs/` y `notas/` que creaste recién.
+
+<Callout type="error">
+  `-mtime` redondea hacia abajo a días completos, y ahí está la trampa: un
+  archivo modificado hace 7 días y medio cuenta como "7", y 7 no es mayor que
+  7, así que `-mtime +7` no lo encuentra. En la práctica, `+7` significa "8
+  días o más". Si necesitás precisión, usá minutos con `-mmin`: `-mmin -60` son
+  los archivos modificados en la última hora.
+</Callout>
 
 <Callout type="nota">
   Si retomás el lab otro día, `-mtime -1` te va a devolver vacío: los archivos
@@ -287,6 +295,12 @@ El `;` va con `\` por la misma razón que los paréntesis: para el shell, `;` se
   Regla práctica: usá `+` por defecto, porque es más rápido (con miles de
   archivos, `\;` lanza miles de procesos). Cambiá a `\;` solo si el comando que
   corrés no sabe manejar varios archivos juntos.
+</Callout>
+
+<Callout type="error">
+  Antes de usar `-exec` con un comando que modifica o borra (`rm`, `chmod`,
+  `mv`), corré el mismo `find` sin el `-exec` y revisá la lista: es exactamente
+  a lo que le vas a aplicar el comando.
 </Callout>
 
 ## Quiz
